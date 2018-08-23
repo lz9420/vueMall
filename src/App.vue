@@ -115,17 +115,38 @@
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+/* 导入jQ动画插件 */
+import $ from 'jquery'
 
 export default {
-  name: 'app',
-  components: {
-    HelloWorld
-  }
+  name: 'container'
+ 
 }
+// 插件的代码 为a标签增加二个用于动画的span
+$(document).ready(function() {
+	$("#menu2 li a").wrapInner( '<span class="out"></span>' );
+	$("#menu2 li a").each(function() {
+		$( '<span class="over">' +  $(this).text() + '</span>' ).appendTo( this );
+	});
+
+	$("#menu2 li a").hover(function() {
+		$(".out",	this).stop().animate({'top':	'48px'},	300); // move down - hide
+		$(".over",	this).stop().animate({'top':	'0px'},		300); // move down - show
+
+	}, function() {
+		$(".out",	this).stop().animate({'top':	'0px'},		300); // move up - show
+		$(".over",	this).stop().animate({'top':	'-48px'},	300); // move up - hide
+	});
+
+});
+
 </script>
 
 <style>
+/* 引入样式 */
 @import url('./assets/statics/site/css/style.css');
-
+@import url('./assets/lib/css/style.css'); 
+#menu2{
+  background-image: none;
+}
 </style>
