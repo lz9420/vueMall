@@ -44,7 +44,7 @@
                                         <dd>
                                             <div class="stock-box">
                                                <!-- 使用element ui的 计数器替换 -->
-                                               <el-input-number v-model="num" @change="handleChange" :min="1" :max="goodsinfo.stock_quantity" size="mini" label="描述文字"></el-input-number>
+                                               <el-input-number v-model="buynum" @change="buyCountChange" :min="0" :max="goodsinfo.stock_quantity" size="mini" label="描述文字"></el-input-number>
                                             </div>
                                             <span class="stock-txt">
                                                 库存
@@ -162,7 +162,7 @@
         <div class="top">点我上天</div>
         </BackTop>
         <!-- 移动的小图片 -->
-        <!-- <img v-if="imglist.length!=0" class="moveImg" :src="imglist[0].original_path" alt=""> -->
+        <img v-if="imglist.length!=0" class="moveImg" :src="imglist[0].original_path" alt="">
     </div>
 </template>
 
@@ -181,8 +181,8 @@ export default {
       productId: undefined, // id
       goodsinfo: {}, // 商品信息
       hotgoodslist: [], // 热卖列表
-      inglist: [], // 图片列表
-      num: 0, // 购买数量
+      imglist: [], // 图片列表
+      buynum: 0, // 购买的数量
       showDiscuss: false, // 是否显示评论 默认是false 默认显示评论，商品内容
       // 放大镜设置
       zoomerOptions: {
@@ -215,7 +215,7 @@ export default {
   },
   // 事件
   methods: {
-    handleChange(value) {
+    buyCountChange(value) {
         console.log(111);
     },
     //  这里是封装，  抽取的方法
@@ -297,9 +297,29 @@ export default {
     },
     // 加入购物车的逻辑，用jQuery来实现
     cartAdd() {
-        // 获取加入购物车的位置
+        // 购买的数量 为0 提示
+        if(this.buynum==0) {
+            this.$Message.error('进来要不买啥子意思咯！！');
+            return;
+        }
+        // 获取商品的位置
         let cartOffset = $('.add').offset();
-        console.log(cartOffset);
+        // console.log(cartOffset);
+        // 获取购物车的位置
+        let targetOffset = $('.icon-cart').offset();
+        // console.log(targetOffset);
+        // 使用动画的方式，移动图片
+        $(".moveImg").css(cartOffset).show().animate(targetOffset,function(){
+           $(this).hide();
+        });
+
+        // 测试 增加数据    , 加入购物车是触发事件也叫提交负荷，说人话就是传参
+        // this.$store.commit("increment",10);
+        // 直接修改购物车商品数据
+        this.$store.commit("addGoods", {      // 调用增加商品的方法注意参数的传递
+            goodId: this.productId,
+            goodNum: this.buynum
+        });
     }
   },
   // 生命周期函数
@@ -312,8 +332,8 @@ export default {
   }, 
   // 观察数据改变
   watch: {
-    $route(val, ildVal) {
-        // 给它为空
+    $route(val, oldVal) {
+        // 数组为空 ，直接销毁
       this.images.normal_size = [];
       // 再重新调用接口 获取数据 渲染页面
       this.getProductDetail();
@@ -357,5 +377,12 @@ export default {
     // 纵轴 副轴 侧轴
     align-items: center;
   }
+}
+
+// 移动图片的样式
+.moveImg {
+    position: absolute;
+    width: 60px;
+    display: none;
 }
 </style>
