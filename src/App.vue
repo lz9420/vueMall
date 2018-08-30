@@ -10,16 +10,19 @@
                     <a target="_blank" href="#"></a>
                 </div>
                 <div id="menu" class="right-box">
-                    <span style="display: none;">
-                        <a href="" class="">登录</a>
+                    <!-- 没有登录显示 -->
+                    <span v-show="$store.state.islogin==false">
+                        <!-- <a href="" class="">登录</a> -->
+                        <router-link to="/login">登录</router-link>
                         <strong>|</strong>
                         <a href="" class="">注册</a>
                         <strong>|</strong>
                     </span>
-                    <span>
+                    <!-- 已经登录 -->
+                    <span v-show="$store.state.islogin==true">
                         <a href="" class="">会员中心</a>
                         <strong>|</strong>
-                        <a>退出</a>
+                        <a @click="logout">退出</a>
                         <strong>|</strong>
                     </span>
                     <!-- <a href="" class=""> -->
@@ -116,6 +119,23 @@
                     </div>
                 </div>
             </div>
+            <!-- 退出的时候，弹出 模态框  -->
+            <!-- 这是在iview中 modal对话框 -->
+             <Modal v-model="isshow" width="360">
+        <p slot="header" style="color:#f60;text-align:center">
+            <Icon type="ios-information-circle"></Icon>
+            <span>你确定要退出？？</span>
+        </p>
+        <div style="text-align:center">
+            <p>重要的事情说三遍，你真的要退出吗+3...</p>
+        
+        </div>
+        <div slot="footer" style="display:flex;justify-content: center">
+            <Button type="success" size="large" @click="sureExit">确定</Button>
+             &nbsp;&nbsp;&nbsp;&nbsp;
+            <Button type="error" size="large" @click="isshow=false">取消</Button>
+        </div>
+    </Modal>
   </div>
   
 </template>
@@ -125,9 +145,36 @@
 import $ from 'jquery'
 
 export default {
-  name: 'container'
- 
-}
+  name: 'container',
+  data: function(){
+      return{
+          isshow: false
+      };
+  },
+
+  // 方法
+  methods: {
+      logout(){
+          // 根据模态框的提示，决定是否调用接口
+          this.isshow =true;
+      },
+      // 取消登录的逻辑
+      sureExit() {
+          // 关闭模态框
+          this.isshow = false;
+           // 调用接口
+          this.$axios.get("site/account/logout").then(response =>{
+             // 登出成功之后  修改 Vuex的状态为false
+             if(response.data.status ==0) {  // 这里 =0 表示退出
+                 // 退出后，修改状态
+                 this.$store.commit("changeLoginStatus",false);
+                //  编程式导航
+                 this.$router.push('/index');
+             }
+          });
+      }   
+  }
+};
 // 插件的代码 为a标签增加二个用于动画的span
 $(document).ready(function() {
 	$("#menu2 li a").wrapInner( '<span class="out"></span>' );
@@ -151,6 +198,7 @@ $(document).ready(function() {
 <style>
 /* 引入样式 */
 @import url('./assets/statics/site/css/style.css');
+/* 引入jQuery动画 */
 @import url('./assets/lib/css/style.css'); 
 #menu2{
   background-image: none;

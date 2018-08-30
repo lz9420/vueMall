@@ -1,5 +1,5 @@
 <template>
-    <div>
+ <div>
   <div class="section">
             <div class="location">
                 <span>当前位置：</span>
@@ -108,8 +108,11 @@
                     <!--购物车底部-->
                     <div class="cart-foot clearfix">
                         <div class="right-box">
-                            <button class="button" onclick="javascript:location.href='/index.html';">继续购物</button>
-                            <button class="submit" onclick="formSubmit(this, '/', '/shopping.html');">立即结算</button>
+                            <router-link to="/index">
+                                 <button class="button">继续购物</button>
+                            </router-link>
+                           
+                            <button class="submit" @click="checkAndsubmit">立即结算</button>
                         </div>
                     </div>
                     <!--购物车底部-->
@@ -208,6 +211,43 @@ export default {
                   this.message.splice(index,1);
               }
         });
+      },
+
+     // 验证登录  跳转登录页面  
+      checkAndsubmit() {
+          // 判断是否选择商品
+          if(this.totalprice==0){
+              this.$message.error("不买东西，来这干嘛！！")
+              return;
+          }
+         // 到这里说用选了东西，直接去订单页并且带上 ids 格式
+         // 获取选择的id
+         let ids = '';
+         this.message.forEach(v=>{
+             // 选中的才累加
+             if(v.selected==true){
+                 ids+=v.id;
+                 ids+=',';
+             }
+         })
+         // 去掉最后的点 ，
+         ids = ids.slice(0,-1);
+         this.$router.push(`/order/${ids}`);
+         
+
+
+        //   // 判断是否登录    这部分代码 使用路由守卫替换
+        //   this.$axios.get("site/account/islogin")
+        //   .then(response=>{
+        //     //   console.log(response);
+        //       // 没有跳转到登录页面
+        //       if(response.data.code=="nologin"){
+        //           this.$router.push('/login');  //编程式导航，代码跳转路由
+        //       }else {
+        //           // 是 。就去结算
+        //           this.$router.push('/order')
+        //       }
+        //   })
       }
   }
 };

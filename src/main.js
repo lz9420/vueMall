@@ -9,6 +9,11 @@ import Index from './components/01.index.vue';
 import Detail from './components/02.productDetail.vue';
 // 导入购物车的组件
 import shoppingCart from './components/03.shoppingCart.vue';
+// 导入登录页面
+import Login from './components/04.login.vue';
+// 导入订单的组件
+import Fillorder from './components/05.fillorder.vue';
+
 // 引入element 轮播图
 import 'element-ui/lib/theme-chalk/index.css';
 import ElementUI from 'element-ui';
@@ -23,7 +28,9 @@ import axios from "axios";
 Vue.prototype.$axios = axios;
 // 配置全局基地址，抽取出来也有好处 如果服务器更好地址，只需要调整一个位置
 axios.defaults.baseURL = 'http://47.106.148.205:8899';
-
+//让ajax携带cookie
+// 让ajax 跨域请求时 是否会携带 凭证(cookie)
+axios.defaults.withCredentials=true;
 Vue.use(iView);
 
 // 导入放大镜
@@ -59,7 +66,11 @@ const store = new Vuex.Store({
   state: {
     // count: 666
     // 尝试读取数据 有使用读取的数据 没有使用 空数组
-    cartDate: JSON.parse(window.localStorage.getItem('goodkey')) || {}
+    cartDate: JSON.parse(window.localStorage.getItem('goodkey')) || {},
+    // 是否登录
+    islogin:false,
+    // 点进来时候的地址
+
   },
   // 这格式暴露的修改方法
   mutations: {
@@ -94,6 +105,14 @@ const store = new Vuex.Store({
       // delete state.cartDate[goodId];
       // 需要调用Vue.delete方法才可以
       Vue.delete(state.cartDate,goodId);
+    },
+    // 切换登录状态
+    changeLoginStatus(state,islogin){
+      state.islogin = islogin;
+    },
+    // 增加一个保存来时的地址的方法
+    saveFromPath(state,fromPath){
+      state.fromPath = fromPath;
     }
   },
   // gertters vuex的计算属性
@@ -136,12 +155,51 @@ let routes = [
     path:'/cart',
     component:shoppingCart,
   },
+  {
+    // 登录页面路由
+    path:'/login',
+    component: Login,
+  },
+  {
+    // 订单的路由
+    path: '/order/:ids',
+    component: Fillorder,
+  },
+
 ]
 // 实例化路由对象
 // routes key 是固定的 
 // 所以我们才可以用这种快速赋值
 let router = new VueRouter({
   routes:routes
+})
+
+// 增加 导航守卫 （路由守卫）  
+router.beforeEach((to, from, next) => {
+  // console.log('to',to);
+  // 每次过来都保存一下来时的地址
+  // 提交载荷 保存数据
+  store.commit('saveFromPath',from.path);
+
+  // 如果访问的是 order页面 判断登录
+  if(to.path.indexOf('/order/')!=-1){
+    // 调用接口
+    axios.get("/site/account/islogin")
+    .then(response=>{
+      console.log(response);
+      // 登录了 才继续访问
+      if(response.data.code!='nologin'){
+        // 直接放走
+        next();
+      }else{
+        // 没有登录打到登录页
+        next('/login')
+      }
+    })
+  }else{
+       // 必须添加这个，否则不会跳转
+  next()
+  }
 })
 
 // 挂载到vue实例上
@@ -153,5 +211,18 @@ new Vue({
   // 路由对象
   router,
   // 仓库对象 属性的名字 叫做store
-  store
+  store,
+  // 最高级别的vue组件（最外层的盒子）
+  beforeCreate(){
+    // console.log(111);
+    axios.get("/site/account/islogin").then(response=>{
+      if(response.data.code=='logined'){ // logined代表已经登录了
+        // 登录成功了
+        store.state.islogin = true;
+      }else{
+        // 没有登录，
+        // 这里就不用写了，上面已经做了判断shi false
+      }
+    })
+  }
 }).$mount('#app')
