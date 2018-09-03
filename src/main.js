@@ -3,16 +3,26 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 // 导入 App根组件 (最外面的组件)
 import App from './App.vue'
-// 导入首页的组件
+//1 导入首页的组件
 import Index from './components/01.index.vue';
-// 导入详情页的组件
+//2 导入详情页的组件
 import Detail from './components/02.productDetail.vue';
-// 导入购物车的组件
+//3 导入购物车的组件
 import shoppingCart from './components/03.shoppingCart.vue';
-// 导入登录页面
+//4 导入登录页面
 import Login from './components/04.login.vue';
-// 导入订单的组件
+//5 导入订单的组件
 import Fillorder from './components/05.fillorder.vue';
+//6 导入支付订单组件
+import PayOrder from './components/06.payOrder.vue';
+//7 导入支付成功组件
+import paySuccess from './components/07.paySuccess.vue';
+//8 导入会员中心组件
+import VipCenter from './components/08.vipCenter.vue';
+//9 导入订单列表
+import orderList from './components/09.orderList.vue';
+//10 导入订单详情
+import orderDetail from './components/10.orderDetail.vue';
 
 // 引入element 轮播图
 import 'element-ui/lib/theme-chalk/index.css';
@@ -52,9 +62,18 @@ import VueLazyload from 'vue-lazyload'
  
 // 注册全局过滤器   依赖于 moment.js..............................
 import moment from 'moment';
-// 注册
-Vue.filter('filterDate', function(val){
-  return moment(val).format("YYYY年MM月DD日");
+// 注册    ，这个过滤器 只能格式化固定的内容
+// 可以接收参数formatStr
+Vue.filter('filterDate', function(val,formatStr){
+  console.log(formatStr);
+  // 如果你传入了格式化字符串，就用传入的
+  if(formatStr!=undefined){
+    return moment(val).format(formatStr);
+  }else{
+    // 没有传入格式化字符串，就用默认的
+    return moment(val).format("YYYY年MM月DD日");
+  }
+ 
 })
 
 //  整合 Vuex 统一进行数据管理
@@ -164,8 +183,56 @@ let routes = [
     // 订单的路由
     path: '/order/:ids',
     component: Fillorder,
+    // 路由信息  可随意加
+    meta: {
+      checkLogin: true
+    }
   },
-
+  {
+    // 订单支付的路由
+    path: '/payOrder/:orderid',
+    component: PayOrder,
+     // 路由元信息 可以随意加  订单支付页 也必须登陆才可以访问
+     meta: {
+      checkLogin: true
+    }
+  },
+  // 支付成功的路由
+  {
+    path:'/paySuccess/:id',
+    component: paySuccess,
+     // 路由元信息 可以随意加  订单支付页 也必须登陆才可以访问
+     meta: {
+      checkLogin: true
+    }
+  },
+  // 会员中心
+  {
+    path: '/vipCenter',
+    component: VipCenter,
+    // 路由元信息 可以随意加  订单支付页 也必须登陆才可以访问
+    meta: {
+      checkLogin: true
+    }
+  },
+  // 订单列表
+  {
+    path: '/orderList/:id',
+    component: orderList,
+    // 路由元信息 可以随意加  订单支付页 也必须登陆才可以访问
+    meta: {
+      checkLogin: true
+    }
+  },
+  // 支付的订单详情
+  {
+    path:'/orderDetail/:id',
+    component:orderDetail,
+    // 路由元信息 可以随意加  订单支付页 也必须登陆才可以访问
+    meta: {
+      checkLogin: true
+    }
+  }
 ]
 // 实例化路由对象
 // routes key 是固定的 
